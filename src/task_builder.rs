@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::fs;
 use glob::glob;
+use chrono::{Local, DateTime};
 
 pub struct TaskBuilder {
     doc: PdfDocumentReference,
@@ -35,7 +36,9 @@ impl TaskBuilder {
     }
     
     pub fn export(self){
-        self.doc.save(&mut BufWriter::new(File::create("pdf/test_working.pdf").unwrap())).unwrap();
+        let t = Local::now().format("%Y%m%d%H%M%S").to_string();
+        let path = "pdf/".to_string() + t.as_str() + "task.pdf";
+        self.doc.save(&mut BufWriter::new(File::create(path).unwrap())).unwrap();
     }
        
 }
