@@ -1,6 +1,5 @@
 extern crate task_generator;
 
-fn main(){
-
+fn main() {
     task_generator::delete_pdf();
 }
