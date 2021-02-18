@@ -1,14 +1,13 @@
-use printpdf::*;
+use printpdf::{*, indices};
 use std::fs::File;
 use std::io::BufWriter;
 use std::fs;
 use glob::glob;
 
-#[derive(Debug)]
-struct TaskBuilder {
+pub struct TaskBuilder {
     doc: PdfDocumentReference,
-    page: PdfPageIndex,
-    layer: PdfLayerIndex,
+    page: indices::PdfPageIndex,
+    layer: indices::PdfLayerIndex,
 }
 
 
@@ -23,7 +22,7 @@ impl TaskBuilder {
         }
     }
 
-    fn delete_pdf() {
+    pub fn delete_pdf(&self) {
         for entry in glob("pdf/*.pdf").expect("Failed to read glob pattern") {
             match entry {
                 Ok(path) => {
@@ -35,7 +34,7 @@ impl TaskBuilder {
         }
     }
     
-    pub fn export(&self){
+    pub fn export(self){
         self.doc.save(&mut BufWriter::new(File::create("pdf/test_working.pdf").unwrap())).unwrap();
     }
        

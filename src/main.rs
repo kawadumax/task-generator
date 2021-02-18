@@ -1,5 +1,7 @@
 extern crate task_generator;
-
+use task_generator::*;
 fn main() {
-    task_generator::delete_pdf();
+    let task_builder = TaskBuilder::new();
+    task_builder.delete_pdf();
+    task_builder.export();
 }
