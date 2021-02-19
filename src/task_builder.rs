@@ -1,3 +1,4 @@
+use crate::{TaskDataRow, TaskDataTable};
 use chrono::Local;
 use glob::glob;
 use once_cell::sync::Lazy;
@@ -10,6 +11,7 @@ pub struct TaskBuilder {
     doc: PdfDocumentReference,
     page_index: indices::PdfPageIndex,
     layer_index: indices::PdfLayerIndex,
+    current_layer: PdfLayerReference,
 }
 
 impl TaskBuilder {
@@ -25,31 +27,57 @@ impl TaskBuilder {
         Self::rm_pdf();
         let (doc, page_index, layer_index) =
             PdfDocument::new("Task", Mm(210.0), Mm(297.0), "Layer 1");
+        let current_layer = doc.get_page(page_index).get_layer(layer_index);
         Self {
             doc,
             page_index,
             layer_index,
+            current_layer,
         }
     }
 
     pub fn preface(&self) {
-        let current_layer = self
-            .doc
-            .get_page(self.page_index)
-            .get_layer(self.layer_index);
         let text = "次の表をエクセルに入力してください。";
         let font = self
             .doc
             .add_external_font(Self::HONOKA_FONT.deref())
             .unwrap();
         // text, font size, x from left edge, y from bottom edge, font
-        current_layer.use_text(
+        self.current_layer.use_text(
             text,
             18.0,
             Self::OFFSET_HORIZON,
             Self::A4_HEIGHT - Self::OFFSET_VERTICAL,
             &font,
         );
+    }
+
+    pub fn table(&self, data: &TaskDataTable) {
+        let row_num = data.len();
+        let col_num = data[0].len();
+        self.row(&data[0]);
+    }
+
+    pub fn row(&self, data: &TaskDataRow) {
+        let outline = self.square(x, y, width, height);
+        // Is the shape stroked? Is the shape closed? Is the shape filled?
+        self.current_layer.add_shape(outline);
+    }
+
+    pub fn square(&self, x: Mm, y: Mm, width: Mm, height: Mm) -> Line {
+        let square_points = vec![
+            (Point::new(x, y), false),
+            (Point::new(x + width, y), false),
+            (Point::new(x + width, y - height), false),
+            (Point::new(x, y - height), false),
+        ];
+        Line {
+            points: square_points,
+            is_closed: true,
+            has_fill: false,
+            has_stroke: true,
+            is_clipping_path: false,
+        }
     }
 
     pub fn export(self) {

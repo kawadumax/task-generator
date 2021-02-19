@@ -1,3 +1,4 @@
+use crate::data_generator::DataGenerator;
 use crate::task_builder::TaskBuilder;
 
 pub struct Mode {
@@ -15,6 +16,7 @@ impl Mode {
 
     pub fn make(self) {
         self.builder.preface();
+        self.builder.table(&DataGenerator::mode_1());
         self.builder.export();
     }
 }
