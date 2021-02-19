@@ -1,9 +1,10 @@
 use chrono::Local;
 use glob::glob;
+use once_cell::sync::Lazy;
 use printpdf::{indices, *};
-use std::fs;
 use std::fs::File;
 use std::io::BufWriter;
+use std::{fs, ops::Deref};
 
 pub struct TaskBuilder {
     doc: PdfDocumentReference,
@@ -12,6 +13,13 @@ pub struct TaskBuilder {
 }
 
 impl TaskBuilder {
+    const HONOKA_FONT: Lazy<File> =
+        Lazy::new(|| File::open("assets/font_1_honokamin.ttf").unwrap());
+    const A4_WIDTH: Mm = Mm(210.0);
+    const A4_HEIGHT: Mm = Mm(297.0);
+    const OFFSET_HORIZON: Mm = Mm(15.0);
+    const OFFSET_VERTICAL: Mm = Mm(15.0);
+
     pub fn new(mode: u8) -> Self {
         Self::mkdir_pdf();
         Self::rm_pdf();
@@ -29,44 +37,19 @@ impl TaskBuilder {
             .doc
             .get_page(self.page_index)
             .get_layer(self.layer_index);
-        let text = "Lorem ipsum";
-        let text2 = "unicode: стуфхfцчшщъыьэюя";
-
+        let text = "次の表をエクセルに入力してください。";
         let font = self
             .doc
-            .add_external_font(File::open("assets/font_1_honokamin.ttf").unwrap())
+            .add_external_font(Self::HONOKA_FONT.deref())
             .unwrap();
-
         // text, font size, x from left edge, y from bottom edge, font
-        current_layer.use_text(text, 48.0, Mm(20.0), Mm(100.0), &font);
-
-        // For more complex layout of text, you can use functions
-        // defined on the PdfLayerReference
-        // Make sure to wrap your commands
-        // in a `begin_text_section()` and `end_text_section()` wrapper
-        current_layer.begin_text_section();
-
-        // setup the general fonts.
-        // see the docs for these functions for details
-        current_layer.set_font(&font, 33.0);
-        current_layer.set_text_cursor(Mm(10.0), Mm(10.0));
-        current_layer.set_line_height(33.0);
-        current_layer.set_word_spacing(3000.0);
-        current_layer.set_character_spacing(10.0);
-        current_layer.set_text_rendering_mode(TextRenderingMode::Stroke);
-
-        // write two lines (one line break)
-        current_layer.write_text(text.clone(), &font);
-        current_layer.add_line_break();
-        current_layer.write_text(text2.clone(), &font);
-        current_layer.add_line_break();
-
-        // write one line, but write text2 in superscript
-        current_layer.write_text(text.clone(), &font);
-        current_layer.set_line_offset(10.0);
-        current_layer.write_text(text2.clone(), &font);
-
-        current_layer.end_text_section();
+        current_layer.use_text(
+            text,
+            18.0,
+            Self::OFFSET_HORIZON,
+            Self::A4_HEIGHT - Self::OFFSET_VERTICAL,
+            &font,
+        );
     }
 
     pub fn export(self) {
