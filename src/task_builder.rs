@@ -14,6 +14,7 @@ pub struct TaskBuilder {
     layer_index: indices::PdfLayerIndex,
     current_layer: PdfLayerReference,
     used_offset: Cell<Mm>,
+    font: IndirectFontRef,
 }
 
 impl TaskBuilder {
@@ -30,12 +31,14 @@ impl TaskBuilder {
         let (doc, page_index, layer_index) =
             PdfDocument::new("Task", Mm(210.0), Mm(297.0), "Layer 1");
         let current_layer = doc.get_page(page_index).get_layer(layer_index);
+        let font = doc.add_external_font(Self::HONOKA_FONT.deref()).unwrap();
         Self {
             doc,
             page_index,
             layer_index,
             current_layer,
             used_offset: Cell::new(Mm(0.0)), // すでにコンテンツがある部分として足していく。
+            font,
         }
     }
 
@@ -46,10 +49,6 @@ impl TaskBuilder {
 
     pub fn preface(&self) {
         let text = "次の表をエクセルに入力してください。";
-        let font = self
-            .doc
-            .add_external_font(Self::HONOKA_FONT.deref())
-            .unwrap();
         // text, font size, x from left edge, y from bottom edge, font
         let font_size = 18.0;
         self.current_layer.use_text(
@@ -57,25 +56,43 @@ impl TaskBuilder {
             font_size,
             Self::OFFSET_HORIZON,
             Self::A4_HEIGHT - Self::OFFSET_VERTICAL,
-            &font,
+            &self.font,
         );
         self.add_used_offset(Self::OFFSET_VERTICAL + Mm(font_size));
     }
 
     pub fn table(&self, data: &TaskDataTable) {
-        let row_num = data.len();
-        let col_num = data[0].len();
-        self.row(&data[0]);
+        for data_row in data {
+            self.row(&data_row);
+        }
     }
 
     pub fn row(&self, data: &TaskDataRow) {
         let x = Self::OFFSET_HORIZON;
-        let y = self.used_offset.get();
-        let width = Self::A4_WIDTH - Self::OFFSET_HORIZON * 2.0;
+        let y = Self::A4_HEIGHT - self.used_offset.get();
+        let width: Mm = Self::A4_WIDTH - Self::OFFSET_HORIZON * 2.0;
         let height = Mm(13.0);
         let outline = self.square(x, y, width, height);
         // Is the shape stroked? Is the shape closed? Is the shape filled?
         self.current_layer.add_shape(outline);
+        // for i in 0..cell_num {
+        for (index, &text) in data.iter().enumerate() {
+            let cell_num = data.len() as f64;
+            let width_ratio: Mm = width / cell_num;
+            let x = Self::OFFSET_HORIZON + width_ratio * index as f64;
+            let vertical_line = self.vertical_line(x, y, height);
+            self.current_layer.add_shape(vertical_line);
+            // フォントのアンカーポイントは左下っぽい
+            let text_margin_left = Mm(5.0);
+            self.current_layer.use_text(
+                text,
+                Pt::from(height).0 / 2.0,
+                x + text_margin_left,
+                y - height / 1.5,
+                &self.font,
+            )
+        }
+        self.add_used_offset(height);
     }
 
     pub fn square(&self, x: Mm, y: Mm, width: Mm, height: Mm) -> Line {
@@ -89,6 +106,20 @@ impl TaskBuilder {
         Line {
             points: square_points,
             is_closed: true,
+            has_fill: false,
+            has_stroke: true,
+            is_clipping_path: false,
+        }
+    }
+
+    pub fn vertical_line(&self, x: Mm, y: Mm, height: Mm) -> Line {
+        let vertical_points = vec![
+            (Point::new(x, y), false),
+            (Point::new(x, y - height), false),
+        ];
+        Line {
+            points: vertical_points,
+            is_closed: false,
             has_fill: false,
             has_stroke: true,
             is_clipping_path: false,
