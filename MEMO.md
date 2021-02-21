@@ -13,6 +13,23 @@
 
 # MEMO
 
+## 紙面の大きさと位置について
+
 A4 の大きさは
 210 mm × 297 mm
 オリジンは左下
+
+## フォントサイズについて
+
+font_size は f64 で、Mm も Pt も f64。
+Mm と Pt はそれぞれ From と Into を実装してる
+
+うーんテキストレイアウトには
+`https://docs.rs/azul-text-layout/0.0.4/azul_text_layout/`
+を使えと作者が言っていた。なんかだるいな。
+
+## 構造のフィールドの mutability について
+
+Rust では親がミュータブルなら子もミュータブルになる。イミュータブルもそう。
+なので子の一部分のフィールドだけ mutable にしたいだけなのに親も mutable にしないといけない。
+こういう時は Cell/RefCell を使えばフィールド単位の Mutability を実現できる。

@@ -3,6 +3,7 @@ use chrono::Local;
 use glob::glob;
 use once_cell::sync::Lazy;
 use printpdf::{indices, *};
+use std::cell::Cell;
 use std::fs::File;
 use std::io::BufWriter;
 use std::{fs, ops::Deref};
@@ -12,6 +13,7 @@ pub struct TaskBuilder {
     page_index: indices::PdfPageIndex,
     layer_index: indices::PdfLayerIndex,
     current_layer: PdfLayerReference,
+    used_offset: Cell<Mm>,
 }
 
 impl TaskBuilder {
@@ -33,7 +35,13 @@ impl TaskBuilder {
             page_index,
             layer_index,
             current_layer,
+            used_offset: Cell::new(Mm(0.0)), // すでにコンテンツがある部分として足していく。
         }
+    }
+
+    pub fn add_used_offset(&self, offset: Mm) {
+        let offset = self.used_offset.get() + offset;
+        self.used_offset.set(offset);
     }
 
     pub fn preface(&self) {
@@ -43,13 +51,15 @@ impl TaskBuilder {
             .add_external_font(Self::HONOKA_FONT.deref())
             .unwrap();
         // text, font size, x from left edge, y from bottom edge, font
+        let font_size = 18.0;
         self.current_layer.use_text(
             text,
-            18.0,
+            font_size,
             Self::OFFSET_HORIZON,
             Self::A4_HEIGHT - Self::OFFSET_VERTICAL,
             &font,
         );
+        self.add_used_offset(Self::OFFSET_VERTICAL + Mm(font_size));
     }
 
     pub fn table(&self, data: &TaskDataTable) {
@@ -59,12 +69,17 @@ impl TaskBuilder {
     }
 
     pub fn row(&self, data: &TaskDataRow) {
+        let x = Self::OFFSET_HORIZON;
+        let y = self.used_offset.get();
+        let width = Self::A4_WIDTH - Self::OFFSET_HORIZON * 2.0;
+        let height = Mm(13.0);
         let outline = self.square(x, y, width, height);
         // Is the shape stroked? Is the shape closed? Is the shape filled?
         self.current_layer.add_shape(outline);
     }
 
     pub fn square(&self, x: Mm, y: Mm, width: Mm, height: Mm) -> Line {
+        //左上から時計回りに□を表現する
         let square_points = vec![
             (Point::new(x, y), false),
             (Point::new(x + width, y), false),

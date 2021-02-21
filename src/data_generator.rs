@@ -4,10 +4,10 @@ pub struct DataGenerator;
 
 impl DataGenerator {
     pub fn mode_1() -> TaskDataTable {
-        let mut vec = Vec::new();
+        let mut data = Vec::new();
         for _ in 0..5 {
-            vec.push(vec!["名前", "人畜無害", "金鳳花"]);
+            data.push(vec!["名前", "人畜無害", "金鳳花"]);
         }
-        vec
+        data
     }
 }
