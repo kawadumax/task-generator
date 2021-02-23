@@ -46,3 +46,53 @@ impl PhoneDataGenerator {
         num_080_or_090.to_string() + "-" + &eight_digit_string
     }
 }
+
+trait TaskDataRowMixin {
+    fn max_length(&self) -> usize;
+    fn min_length(&self) -> usize;
+}
+
+impl TaskDataRowMixin for TaskDataRow {
+    fn max_length(&self) -> usize {
+        let mut max_length = usize::MIN;
+        for data in self {
+            max_length = max_length.max(data.len())
+        }
+        max_length
+    }
+
+    fn min_length(&self) -> usize {
+        let mut min_length = usize::MAX;
+        for data in self {
+            min_length = min_length.min(data.len())
+        }
+        min_length
+    }
+}
+
+pub trait TaskDataTableMixin {
+    fn collect_max_lengths(&self) -> Vec<usize>;
+    fn normal_max_lengths(&self) -> Vec<f64>;
+}
+
+impl TaskDataTableMixin for TaskDataTable {
+    fn collect_max_lengths(&self) -> Vec<usize> {
+        let col_num = self[0].len();
+        let mut max_lengths = vec![0; col_num];
+        for row in self {
+            for (index, data) in row.iter().enumerate() {
+                max_lengths[index] = max_lengths[index].max(data.len());
+            }
+        }
+        max_lengths
+    }
+
+    fn normal_max_lengths(&self) -> Vec<f64> {
+        let max_lengths = self.collect_max_lengths();
+        let sum: u16 = max_lengths.iter().map(|l| *l as u16).sum();
+        max_lengths
+            .iter()
+            .map(|length| *length as f64 / sum as f64)
+            .collect()
+    }
+}

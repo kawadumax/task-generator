@@ -5,12 +5,6 @@
 //     }
 // }
 
-// pub trait PdfLayerReferenceMixin {
-//     fn use_text_with_charactor_space;
-// }
-
-// impl PdfLayerReference {}
-
 pub trait U16Mixin {
     fn to_string_with_zero_padding(&self) -> String;
 }

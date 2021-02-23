@@ -1,9 +1,9 @@
-use crate::{TaskDataRow, TaskDataTable};
+use crate::{TaskDataRow, TaskDataTable, TaskDataTableMixin};
 use chrono::Local;
 use glob::glob;
 use once_cell::sync::Lazy;
 use printpdf::{indices, *};
-use std::cell::Cell;
+use std::cell::{self, Cell};
 use std::fs::File;
 use std::io::BufWriter;
 use std::{fs, ops::Deref};
@@ -24,6 +24,7 @@ impl TaskBuilder {
     const A4_HEIGHT: Mm = Mm(297.0);
     const OFFSET_HORIZON: Mm = Mm(15.0);
     const OFFSET_VERTICAL: Mm = Mm(15.0);
+    const AVAILABLE_WIDTH: Lazy<Mm> = Lazy::new(|| Self::A4_WIDTH - Self::OFFSET_HORIZON * 2.0);
 
     pub fn new(mode: u8) -> Self {
         Self::mkdir_pdf();
@@ -62,29 +63,42 @@ impl TaskBuilder {
     }
 
     pub fn table(&self, data: &TaskDataTable) {
+        let x_positions = Self::get_table_v_line_x_postions(data);
+
         for data_row in data {
-            self.row(&data_row);
+            self.row(&data_row, &x_positions);
         }
     }
 
-    pub fn row(&self, data: &TaskDataRow) {
+    fn get_table_v_line_x_postions(data: &TaskDataTable) -> Vec<Mm> {
+        let cell_width_set: Vec<Mm> = data
+            .normal_max_lengths()
+            .iter()
+            .map(|r| *Self::AVAILABLE_WIDTH * *r)
+            .collect();
+        let mut x_positions = vec![Mm(0.0); cell_width_set.len()];
+        let mut current_pos = Self::OFFSET_HORIZON;
+        for (index, w) in cell_width_set.iter().enumerate() {
+            x_positions[index] = current_pos;
+            current_pos = current_pos + *w;
+        }
+        x_positions
+    }
+
+    pub fn row(&self, data: &TaskDataRow, x_positions: &Vec<Mm>) {
         let x = Self::OFFSET_HORIZON;
         let y = Self::A4_HEIGHT - self.used_offset.get();
         let width: Mm = Self::A4_WIDTH - Self::OFFSET_HORIZON * 2.0;
         let height = Mm(6.0);
         let outline = self.square(x, y, width, height);
-        // Is the shape stroked? Is the shape closed? Is the shape filled?
         self.current_layer.add_shape(outline);
-        // for i in 0..cell_num {
         for (index, text) in data.iter().enumerate() {
-            let cell_num = data.len() as f64;
-            let width_ratio: Mm = width / cell_num;
-            let x = Self::OFFSET_HORIZON + width_ratio * index as f64;
+            let x = x_positions[index];
             let vertical_line = self.vertical_line(x, y, height);
             self.current_layer.add_shape(vertical_line);
             // フォントのアンカーポイントは左下っぽい
             let font_size = Pt::from(height).0 / 2.0;
-            let text_margin_left = Mm(font_size / 4.0);
+            let text_margin_left = Mm(font_size / 8.0);
             self.current_layer.set_character_spacing(-1.0);
             self.current_layer.use_text(
                 text,
@@ -127,6 +141,10 @@ impl TaskBuilder {
             is_clipping_path: false,
         }
     }
+
+    // pub fn get_vertical_line_x_positions(&self, data: &TaskDataTable) {
+    //     data.
+    // }
 
     pub fn export(self) {
         let t = Local::now().format("%Y%m%d-%H%M%S-").to_string();
