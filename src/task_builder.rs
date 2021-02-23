@@ -142,10 +142,6 @@ impl TaskBuilder {
         }
     }
 
-    // pub fn get_vertical_line_x_positions(&self, data: &TaskDataTable) {
-    //     data.
-    // }
-
     pub fn export(self) {
         let t = Local::now().format("%Y%m%d-%H%M%S-").to_string();
         let path = "pdf/".to_string() + t.as_str() + "task.pdf";

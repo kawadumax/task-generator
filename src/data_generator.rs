@@ -11,6 +11,11 @@ pub struct DataGenerator;
 impl DataGenerator {
     pub fn mode_1() -> TaskDataTable {
         let mut data = Vec::new();
+        let header = vec!["名前", "ひらがな", "性別", "住所", "電話番号"]
+            .iter()
+            .map(|&s| s.into())
+            .collect();
+        data.push(header);
         for _ in 0..38 {
             let name = gimei::name();
             let address = gimei::address();
