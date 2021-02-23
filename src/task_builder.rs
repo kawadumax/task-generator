@@ -58,7 +58,7 @@ impl TaskBuilder {
             Self::A4_HEIGHT - Self::OFFSET_VERTICAL,
             &self.font,
         );
-        self.add_used_offset(Self::OFFSET_VERTICAL + Mm(font_size));
+        self.add_used_offset(Self::OFFSET_VERTICAL + Pt(font_size).into());
     }
 
     pub fn table(&self, data: &TaskDataTable) {
@@ -71,22 +71,24 @@ impl TaskBuilder {
         let x = Self::OFFSET_HORIZON;
         let y = Self::A4_HEIGHT - self.used_offset.get();
         let width: Mm = Self::A4_WIDTH - Self::OFFSET_HORIZON * 2.0;
-        let height = Mm(13.0);
+        let height = Mm(6.0);
         let outline = self.square(x, y, width, height);
         // Is the shape stroked? Is the shape closed? Is the shape filled?
         self.current_layer.add_shape(outline);
         // for i in 0..cell_num {
-        for (index, &text) in data.iter().enumerate() {
+        for (index, text) in data.iter().enumerate() {
             let cell_num = data.len() as f64;
             let width_ratio: Mm = width / cell_num;
             let x = Self::OFFSET_HORIZON + width_ratio * index as f64;
             let vertical_line = self.vertical_line(x, y, height);
             self.current_layer.add_shape(vertical_line);
             // フォントのアンカーポイントは左下っぽい
-            let text_margin_left = Mm(5.0);
+            let font_size = Pt::from(height).0 / 2.0;
+            let text_margin_left = Mm(font_size / 4.0);
+            self.current_layer.set_character_spacing(-1.0);
             self.current_layer.use_text(
                 text,
-                Pt::from(height).0 / 2.0,
+                font_size, //高さの半分程度のフォントサイズ
                 x + text_margin_left,
                 y - height / 1.5,
                 &self.font,

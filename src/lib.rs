@@ -1,7 +1,7 @@
 pub mod data_generator;
 pub mod mode;
 pub mod task_builder;
-// pub mod util;
+pub mod util;
 
 pub use data_generator::*;
 pub use mode::Mode;

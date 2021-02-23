@@ -190,6 +190,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a246d82be1c9d791c5dfde9a2bd045fc3cbba3fa2b11ad558f27d01712f00569"
 
 [[package]]
+name = "fake"
+version = "2.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "704749d52f737f28d7a632d4608db4005822efbb5a1c673c159f1193c9e63832"
+dependencies = [
+ "rand",
+]
+
+[[package]]
 name = "flate2"
 version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -672,10 +681,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "fake",
  "gimei",
  "glob",
  "once_cell",
  "printpdf",
+ "rand",
 ]
 
 [[package]]
