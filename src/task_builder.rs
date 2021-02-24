@@ -18,8 +18,10 @@ pub struct TaskBuilder {
 }
 
 impl TaskBuilder {
-    const HONOKA_FONT: Lazy<File> =
-        Lazy::new(|| File::open("assets/font_1_honokamin.ttf").unwrap());
+    // const HONOKA_FONT: Lazy<File> =
+    //     Lazy::new(|| File::open("assets/font_1_honokamin.ttf").unwrap());
+    const HONOKA_FONT: Lazy<&'static [u8]> =
+        Lazy::new(|| include_bytes!("../assets/font_1_honokamin.ttf"));
     const A4_WIDTH: Mm = Mm(210.0);
     const A4_HEIGHT: Mm = Mm(297.0);
     const OFFSET_HORIZON: Mm = Mm(15.0);
@@ -32,7 +34,7 @@ impl TaskBuilder {
         let (doc, page_index, layer_index) =
             PdfDocument::new("Task", Mm(210.0), Mm(297.0), "Layer 1");
         let current_layer = doc.get_page(page_index).get_layer(layer_index);
-        let font = doc.add_external_font(Self::HONOKA_FONT.deref()).unwrap();
+        let font = doc.add_external_font(*Self::HONOKA_FONT).unwrap();
         Self {
             doc,
             page_index,

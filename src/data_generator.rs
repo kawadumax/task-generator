@@ -93,6 +93,7 @@ impl TaskDataTableMixin for TaskDataTable {
     }
 
     fn normal_max_lengths(&self) -> Vec<f64> {
+        //足して1になるように割り算する
         let max_lengths = self.collect_max_lengths();
         let sum: u16 = max_lengths.iter().map(|l| *l as u16).sum();
         max_lengths
