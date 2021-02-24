@@ -24,6 +24,7 @@ impl TaskBuilder {
     const OFFSET_HORIZON: Mm = Mm(15.0);
     const OFFSET_VERTICAL: Mm = Mm(15.0);
     const AVAILABLE_WIDTH: Lazy<Mm> = Lazy::new(|| Self::A4_WIDTH - Self::OFFSET_HORIZON * 2.0);
+    const FOLDER_NAME: &'static str = "タスク作成君";
 
     pub fn new(mode: u8) -> Self {
         Self::mkdir_pdf();
@@ -141,7 +142,7 @@ impl TaskBuilder {
 
     pub fn export(self) {
         let t = Local::now().format("%Y%m%d-%H%M%S-").to_string();
-        let path = "pdf/".to_string() + t.as_str() + "task.pdf";
+        let path = "./".to_string() + Self::FOLDER_NAME + "/" + t.as_str() + "task.pdf";
         self.doc
             .save(&mut BufWriter::new(File::create(path).unwrap()))
             .unwrap();
@@ -151,7 +152,9 @@ impl TaskBuilder {
         if cfg!(not(debug_assertions)) {
             return;
         }
-        for entry in glob("pdf/*.pdf").expect("Failed to read glob pattern") {
+        for entry in
+            glob(&(Self::FOLDER_NAME.to_string() + "/*.pdf")).expect("Failed to read glob pattern")
+        {
             match entry {
                 Ok(path) => {
                     println!("{:?}", path.display());
@@ -163,7 +166,7 @@ impl TaskBuilder {
     }
 
     fn mkdir_pdf() {
-        match fs::create_dir("pdf") {
+        match fs::create_dir(Self::FOLDER_NAME) {
             Err(why) => {
                 if cfg!(debug_assertions) {
                     println!("! {:?}", why.kind())
