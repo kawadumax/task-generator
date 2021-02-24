@@ -24,7 +24,7 @@ impl TaskBuilder {
     const OFFSET_HORIZON: Mm = Mm(15.0);
     const OFFSET_VERTICAL: Mm = Mm(15.0);
     const AVAILABLE_WIDTH: Lazy<Mm> = Lazy::new(|| Self::A4_WIDTH - Self::OFFSET_HORIZON * 2.0);
-    const FOLDER_NAME: &'static str = "タスク作成君";
+    const FOLDER_NAME: &'static str = "pdf";
 
     pub fn new(mode: u8) -> Self {
         Self::mkdir_pdf();
