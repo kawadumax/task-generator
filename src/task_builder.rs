@@ -2,16 +2,14 @@ use crate::{TaskDataRow, TaskDataTable, TaskDataTableMixin};
 use chrono::Local;
 use glob::glob;
 use once_cell::sync::Lazy;
-use printpdf::{indices, *};
-use std::cell::{self, Cell};
+use printpdf::*;
+use std::cell::Cell;
+use std::fs;
 use std::fs::File;
 use std::io::BufWriter;
-use std::{fs, ops::Deref};
 
 pub struct TaskBuilder {
     doc: PdfDocumentReference,
-    page_index: indices::PdfPageIndex,
-    layer_index: indices::PdfLayerIndex,
     current_layer: PdfLayerReference,
     used_offset: Cell<Mm>,
     font: IndirectFontRef,
@@ -20,8 +18,7 @@ pub struct TaskBuilder {
 impl TaskBuilder {
     // const HONOKA_FONT: Lazy<File> =
     //     Lazy::new(|| File::open("assets/font_1_honokamin.ttf").unwrap());
-    const HONOKA_FONT: Lazy<&'static [u8]> =
-        Lazy::new(|| include_bytes!("../assets/font_1_honokamin.ttf"));
+    const HONOKA_FONT: &'static [u8] = include_bytes!("../assets/font_1_honokamin.ttf");
     const A4_WIDTH: Mm = Mm(210.0);
     const A4_HEIGHT: Mm = Mm(297.0);
     const OFFSET_HORIZON: Mm = Mm(15.0);
@@ -34,11 +31,9 @@ impl TaskBuilder {
         let (doc, page_index, layer_index) =
             PdfDocument::new("Task", Mm(210.0), Mm(297.0), "Layer 1");
         let current_layer = doc.get_page(page_index).get_layer(layer_index);
-        let font = doc.add_external_font(*Self::HONOKA_FONT).unwrap();
+        let font = doc.add_external_font(Self::HONOKA_FONT).unwrap();
         Self {
             doc,
-            page_index,
-            layer_index,
             current_layer,
             used_offset: Cell::new(Mm(0.0)), // すでにコンテンツがある部分として足していく。
             font,
@@ -153,6 +148,9 @@ impl TaskBuilder {
     }
 
     fn rm_pdf() {
+        if cfg!(not(debug_assertions)) {
+            return;
+        }
         for entry in glob("pdf/*.pdf").expect("Failed to read glob pattern") {
             match entry {
                 Ok(path) => {
@@ -166,7 +164,11 @@ impl TaskBuilder {
 
     fn mkdir_pdf() {
         match fs::create_dir("pdf") {
-            Err(why) => println!("! {:?}", why.kind()),
+            Err(why) => {
+                if cfg!(debug_assertions) {
+                    println!("! {:?}", why.kind())
+                }
+            }
             Ok(_) => {}
         }
     }
