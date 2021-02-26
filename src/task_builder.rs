@@ -70,7 +70,7 @@ impl TaskBuilder {
 
     fn get_table_v_line_x_postions(data: &TaskDataTable) -> Vec<Mm> {
         let cell_width_set: Vec<Mm> = data
-            .normal_max_lengths()
+            .max_length_ratios()
             .iter()
             .map(|r| *Self::AVAILABLE_WIDTH * *r)
             .collect();
@@ -87,7 +87,7 @@ impl TaskBuilder {
         let x = Self::OFFSET_HORIZON;
         let y = Self::A4_HEIGHT - self.used_offset.get();
         let width: Mm = Self::A4_WIDTH - Self::OFFSET_HORIZON * 2.0;
-        let height = Mm(6.0);
+        let height = Mm(7.0);
         let outline = self.square(x, y, width, height);
         self.current_layer.add_shape(outline);
         for (index, text) in data.iter().enumerate() {
@@ -95,12 +95,12 @@ impl TaskBuilder {
             let vertical_line = self.vertical_line(x, y, height);
             self.current_layer.add_shape(vertical_line);
             // フォントのアンカーポイントは左下っぽい
-            let font_size = Pt::from(height).0 / 2.0;
+            let font_size = Pt::from(height).0 / 2.0; //高さの半分程度のフォントサイズ
             let text_margin_left = Mm(font_size / 8.0);
             self.current_layer.set_character_spacing(-1.0);
             self.current_layer.use_text(
                 text,
-                font_size, //高さの半分程度のフォントサイズ
+                font_size,
                 x + text_margin_left,
                 y - height / 1.5,
                 &self.font,
@@ -174,5 +174,35 @@ impl TaskBuilder {
             }
             Ok(_) => {}
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::TaskBuilder;
+    use crate::{TaskDataRow, TaskDataTable, TaskDataTableMixin};
+
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+
+    #[test]
+    fn perspect_x_positions() {
+        let mock_row: TaskDataRow = vec![
+            "正岡子規".into(),
+            "まさおかしき".into(),
+            "東京".into(),
+            "080-0000-0000".into(),
+        ];
+        let mock_data: TaskDataTable = vec![mock_row];
+        let max_lengths = mock_data.collect_max_lengths();
+        dbg!(max_lengths);
+        let ratios = mock_data.max_length_ratios();
+        dbg!(mock_data.max_length_ratios());
+        debug_assert_eq!(ratios.iter().sum::<f64>(), 1.0);
+
+        let x_positions = TaskBuilder::get_table_v_line_x_postions(&mock_data);
+        dbg!(x_positions);
     }
 }

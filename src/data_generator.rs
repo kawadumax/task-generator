@@ -1,5 +1,5 @@
 use crate::util::U16Mixin;
-use std::u16;
+use std::{ops::Deref, u16};
 // use fake::{faker::phone_number::en::PhoneNumber, Fake};
 use gimei;
 use rand::{prelude::ThreadRng, thread_rng, Rng};
@@ -77,7 +77,7 @@ impl TaskDataRowMixin for TaskDataRow {
 
 pub trait TaskDataTableMixin {
     fn collect_max_lengths(&self) -> Vec<usize>;
-    fn normal_max_lengths(&self) -> Vec<f64>;
+    fn max_length_ratios(&self) -> Vec<f64>;
 }
 
 impl TaskDataTableMixin for TaskDataTable {
@@ -86,13 +86,14 @@ impl TaskDataTableMixin for TaskDataTable {
         let mut max_lengths = vec![0; col_num];
         for row in self {
             for (index, data) in row.iter().enumerate() {
-                max_lengths[index] = max_lengths[index].max(data.len());
+                let l = &data.deref().chars().count();
+                max_lengths[index] = max_lengths[index].max(*l);
             }
         }
         max_lengths
     }
 
-    fn normal_max_lengths(&self) -> Vec<f64> {
+    fn max_length_ratios(&self) -> Vec<f64> {
         //足して1になるように割り算する
         let max_lengths = self.collect_max_lengths();
         let sum: u16 = max_lengths.iter().map(|l| *l as u16).sum();
