@@ -1,0 +1,64 @@
+{
+    // IntelliSense を使用して利用可能な属性を学べます。
+    // 既存の属性の説明をホバーして表示します。
+    // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'task-generator'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=task-generator"
+                ],
+                "filter": {
+                    "name": "task-generator",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'タスク作成君'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=タスク作成君",
+                    "--package=task-generator"
+                ],
+                "filter": {
+                    "name": "タスク作成君",
+                    "kind": "bin"
+                }
+            },
+            "args": ["2"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'タスク作成君'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=タスク作成君",
+                    "--package=task-generator"
+                ],
+                "filter": {
+                    "name": "タスク作成君",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

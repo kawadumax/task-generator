@@ -16,8 +16,6 @@ pub struct TaskBuilder {
 }
 
 impl TaskBuilder {
-    // const HONOKA_FONT: Lazy<File> =
-    //     Lazy::new(|| File::open("assets/font_1_honokamin.ttf").unwrap());
     const HONOKA_FONT: &'static [u8] = include_bytes!("../assets/font_1_honokamin.ttf");
     const A4_WIDTH: Mm = Mm(210.0);
     const A4_HEIGHT: Mm = Mm(297.0);
@@ -26,7 +24,7 @@ impl TaskBuilder {
     const AVAILABLE_WIDTH: Lazy<Mm> = Lazy::new(|| Self::A4_WIDTH - Self::OFFSET_HORIZON * 2.0);
     const FOLDER_NAME: &'static str = "pdf";
 
-    pub fn new(mode: u8) -> Self {
+    pub fn new() -> Self {
         Self::mkdir_pdf();
         Self::rm_pdf();
         let (doc, page_index, layer_index) =

@@ -30,6 +30,16 @@ impl DataGenerator {
         }
         data
     }
+
+    pub fn mode_2() -> TaskDataTable {
+        let mut data = Vec::new();
+        let header = vec!["名前", "ひらがな", "性別", "住所", "電話番号"]
+            .iter()
+            .map(|&s| s.into())
+            .collect();
+        data.push(header);
+        data
+    }
 }
 
 struct PhoneDataGenerator {
