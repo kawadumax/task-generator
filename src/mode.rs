@@ -16,8 +16,6 @@ impl ModeController {
 }
 
 pub trait Mode {
-    // fn new(mode: u8) -> Self;
-
     fn make(self: Box<Self>);
 }
 

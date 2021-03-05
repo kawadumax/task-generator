@@ -3,6 +3,7 @@ use std::{ops::Deref, u16};
 // use fake::{faker::phone_number::en::PhoneNumber, Fake};
 use gimei;
 use rand::{prelude::ThreadRng, thread_rng, Rng};
+use std::cell::Cell;
 pub type TaskDataRow = Vec<String>;
 pub type TaskDataTable = Vec<TaskDataRow>;
 
@@ -15,11 +16,11 @@ impl DataGenerator {
             .iter()
             .map(|&s| s.into())
             .collect();
+        let mut pg = PhoneDataGenerator::new();
         data.push(header);
         for _ in 0..38 {
             let name = gimei::name();
             let address = gimei::address();
-            let mut pg = PhoneDataGenerator::new();
             data.push(vec![
                 name.to_kanji(),
                 name.to_hiragana(),
@@ -37,9 +38,21 @@ impl DataGenerator {
             .iter()
             .map(|&s| s.into())
             .collect();
+        let mut pg = PhoneDataGenerator::new();
+        let mut ng = NoiseDataGenerator::new();
         data.push(header);
+        for _ in 0..38 {
+            let name = gimei::name();
+            let address = gimei::address();
+            data.push(ng.name_exchanged(name, address, &mut pg));
+        }
         data
     }
+
+    // pub fn name_noise_data() -> Vec<String> {
+    //     let rng = thread_rng();
+    //     rng
+    // }
 }
 
 struct PhoneDataGenerator {
@@ -59,6 +72,46 @@ impl PhoneDataGenerator {
             + "-"
             + &(four_digit_latter % 10_000).to_string_with_zero_padding();
         num_080_or_090.to_string() + "-" + &eight_digit_string
+    }
+}
+
+struct NoiseDataGenerator {
+    rng: ThreadRng, // デフォルトの乱数生成器を初期化します
+    noise_count: Cell<u16>,
+}
+
+impl NoiseDataGenerator {
+    pub fn new() -> Self {
+        Self {
+            rng: thread_rng(),
+            noise_count: Cell::new(0),
+        }
+    }
+
+    pub fn name_exchanged(
+        &mut self,
+        name: gimei::Name,
+        address: gimei::Address,
+        pg: &mut PhoneDataGenerator,
+    ) -> Vec<String> {
+        if self.rng.gen_range(0..100) < 10 && self.noise_count.get() < 3 {
+            self.noise_count.set(self.noise_count.get() + 1);
+            vec![
+                name.to_hiragana(), //ひらがなと漢字が入れ替わっている
+                name.to_kanji(),
+                name.gender.to_string(),
+                address.to_string(),
+                pg.phone(),
+            ]
+        } else {
+            vec![
+                name.to_kanji(),
+                name.to_hiragana(), //ひらがなと漢字が入れ替わっている
+                name.gender.to_string(),
+                address.to_string(),
+                pg.phone(),
+            ]
+        }
     }
 }
 

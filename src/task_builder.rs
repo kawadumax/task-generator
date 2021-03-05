@@ -155,8 +155,13 @@ impl TaskBuilder {
         {
             match entry {
                 Ok(path) => {
-                    println!("{:?}", path.display());
-                    fs::remove_file(path);
+                    println!("PDFファイル:{:?}を確認しました。", path.display());
+                    if let Err(error) = fs::remove_file(path) {
+                        println!(
+                            "エラーが出て、既存のPDFを削除できませんでした。続行します:{:?}",
+                            error
+                        )
+                    }
                 }
                 Err(e) => println!("{:?}", e),
             }
