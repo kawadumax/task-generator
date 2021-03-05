@@ -34,7 +34,7 @@ impl TaskBuilder {
         Self {
             doc,
             current_layer,
-            used_offset: Cell::new(Mm(0.0)), // すでにコンテンツがある部分として足していく。
+            used_offset: Cell::new(Self::OFFSET_VERTICAL), // すでにコンテンツがある部分として足していく。
             font,
         }
     }
@@ -44,18 +44,17 @@ impl TaskBuilder {
         self.used_offset.set(offset);
     }
 
-    pub fn preface(&self) {
-        let text = "次の表をエクセルに入力してください。";
+    pub fn preface(&self, text: &str) {
         // text, font size, x from left edge, y from bottom edge, font
         let font_size = 18.0;
         self.current_layer.use_text(
             text,
             font_size,
             Self::OFFSET_HORIZON,
-            Self::A4_HEIGHT - Self::OFFSET_VERTICAL,
+            Self::A4_HEIGHT - self.used_offset.get(),
             &self.font,
         );
-        self.add_used_offset(Self::OFFSET_VERTICAL + Pt(font_size).into());
+        self.add_used_offset(Pt(font_size).into());
     }
 
     pub fn table(&self, data: &TaskDataTable) {

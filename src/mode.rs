@@ -25,7 +25,8 @@ pub struct Level1 {
 
 impl Mode for Level1 {
     fn make(self: Box<Self>) {
-        self.builder.preface();
+        self.builder
+            .preface("次のデータをエクセルに入力してください。");
         self.builder.table(&DataGenerator::mode_1());
         self.builder.export();
     }
@@ -37,7 +38,10 @@ pub struct Level2 {
 
 impl Mode for Level2 {
     fn make(self: Box<Self>) {
-        self.builder.preface();
+        self.builder
+            .preface("次のデータをエクセルに入力してください。");
+        self.builder
+            .preface("不正な値がある場合は、担当者に相談すること。");
         self.builder.table(&DataGenerator::mode_2());
         self.builder.export();
     }

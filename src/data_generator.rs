@@ -41,18 +41,13 @@ impl DataGenerator {
         let mut pg = PhoneDataGenerator::new();
         let mut ng = NoiseDataGenerator::new();
         data.push(header);
-        for _ in 0..38 {
+        for _ in 0..35 {
             let name = gimei::name();
             let address = gimei::address();
             data.push(ng.name_exchanged(name, address, &mut pg));
         }
         data
     }
-
-    // pub fn name_noise_data() -> Vec<String> {
-    //     let rng = thread_rng();
-    //     rng
-    // }
 }
 
 struct PhoneDataGenerator {
@@ -106,7 +101,7 @@ impl NoiseDataGenerator {
         } else {
             vec![
                 name.to_kanji(),
-                name.to_hiragana(), //ひらがなと漢字が入れ替わっている
+                name.to_hiragana(),
                 name.gender.to_string(),
                 address.to_string(),
                 pg.phone(),
